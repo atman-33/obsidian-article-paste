@@ -33,10 +33,13 @@ function buildImageTag(image: EncodedImage): string {
   return `<img src="${src}" data-path="${dataPath}" alt="${altText}">`;
 }
 
-interface PlaceholderEntry {
-  token: string;
-  image: EncodedImage;
+function wrapBlock(content: string): string {
+  return `<p>${content}</p>`;
 }
+
+type Segment =
+  | { type: 'text'; value: string }
+  | { type: 'embed'; original: string };
 
 export class HtmlClipboardComposer implements ClipboardComposer {
   constructor(
@@ -59,24 +62,21 @@ export class HtmlClipboardComposer implements ClipboardComposer {
     const resolvedLinks = new Set(embeds.map((embed) => embed.originalLink));
     const warnings: string[] = [];
 
-    let bodyHtml: string;
-
-    if (format === 'html') {
-      bodyHtml = await this.composeHtml(
-        selection.markdown,
-        selection.sourcePath,
-        imageBuckets,
-        resolvedLinks,
-        warnings,
-      );
-    } else {
-      bodyHtml = this.composeEscaped(
-        selection.markdown,
-        imageBuckets,
-        resolvedLinks,
-        warnings,
-      );
-    }
+    const bodyHtml =
+      format === 'html'
+        ? await this.composeHtml(
+            selection.markdown,
+            selection.sourcePath,
+            imageBuckets,
+            resolvedLinks,
+            warnings,
+          )
+        : this.composeEscaped(
+            selection.markdown,
+            imageBuckets,
+            resolvedLinks,
+            warnings,
+          );
 
     for (const [original, bucket] of imageBuckets.entries()) {
       if (bucket.length > 0) {
@@ -103,48 +103,36 @@ export class HtmlClipboardComposer implements ClipboardComposer {
     resolvedLinks: Set<string>,
     warnings: string[],
   ): string {
+    const segments = this.splitIntoSegments(markdown);
     const htmlSegments: string[] = [];
-    let cursor = 0;
 
-    const appendPlain = (start: number, end: number) => {
-      if (start >= end) {
-        return;
-      }
-      const segment = markdown.slice(start, end);
-      if (segment.length > 0) {
-        htmlSegments.push(formatPlainTextSegment(segment));
-      }
-    };
-
-    const pattern = new RegExp(EMBED_PATTERN.source, 'g');
-    for (;;) {
-      const match = pattern.exec(markdown);
-      if (!match) {
-        break;
+    for (const segment of segments) {
+      if (segment.type === 'text') {
+        if (segment.value.length === 0) {
+          continue;
+        }
+        htmlSegments.push(wrapBlock(formatPlainTextSegment(segment.value)));
+        continue;
       }
 
-      const [original] = match;
-      appendPlain(cursor, match.index);
-      cursor = pattern.lastIndex;
-
-      const bucket = imageBuckets.get(original);
+      const bucket = imageBuckets.get(segment.original);
       if (bucket && bucket.length > 0) {
         const image = bucket.shift();
         if (!image) {
-          warnings.push(`No encoded image available for ${original}`);
-          htmlSegments.push(formatPlainTextSegment(original));
+          warnings.push(`No encoded image available for ${segment.original}`);
+          htmlSegments.push(
+            wrapBlock(formatPlainTextSegment(segment.original)),
+          );
           continue;
         }
-        htmlSegments.push(buildImageTag(image));
+        htmlSegments.push(wrapBlock(buildImageTag(image)));
       } else {
-        if (resolvedLinks.has(original)) {
-          warnings.push(`No encoded image available for ${original}`);
+        if (resolvedLinks.has(segment.original)) {
+          warnings.push(`No encoded image available for ${segment.original}`);
         }
-        htmlSegments.push(formatPlainTextSegment(original));
+        htmlSegments.push(wrapBlock(formatPlainTextSegment(segment.original)));
       }
     }
-
-    appendPlain(cursor, markdown.length);
 
     return htmlSegments.join('');
   }
@@ -156,48 +144,72 @@ export class HtmlClipboardComposer implements ClipboardComposer {
     resolvedLinks: Set<string>,
     warnings: string[],
   ): Promise<string> {
-    let processed = '';
-    const placeholders: PlaceholderEntry[] = [];
-    let cursor = 0;
+    const segments = this.splitIntoSegments(markdown);
+    const htmlSegments: string[] = [];
 
+    for (const segment of segments) {
+      if (segment.type === 'text') {
+        const trimmed = segment.value.trim();
+        if (trimmed.length === 0) {
+          continue;
+        }
+        const rendered = await this.markdownRenderer.render(
+          segment.value,
+          sourcePath,
+        );
+        htmlSegments.push(rendered);
+        continue;
+      }
+
+      const bucket = imageBuckets.get(segment.original);
+      if (bucket && bucket.length > 0) {
+        const image = bucket.shift();
+        if (!image) {
+          warnings.push(`No encoded image available for ${segment.original}`);
+          htmlSegments.push(
+            await this.markdownRenderer.render(segment.original, sourcePath),
+          );
+          continue;
+        }
+        htmlSegments.push(wrapBlock(buildImageTag(image)));
+      } else {
+        if (resolvedLinks.has(segment.original)) {
+          warnings.push(`No encoded image available for ${segment.original}`);
+        }
+        htmlSegments.push(
+          await this.markdownRenderer.render(segment.original, sourcePath),
+        );
+      }
+    }
+
+    return htmlSegments.join('');
+  }
+
+  private splitIntoSegments(markdown: string): Segment[] {
+    const segments: Segment[] = [];
+    let cursor = 0;
     const pattern = new RegExp(EMBED_PATTERN.source, 'g');
+
     for (;;) {
       const match = pattern.exec(markdown);
       if (!match) {
         break;
       }
       const [original] = match;
-      processed += markdown.slice(cursor, match.index);
-      cursor = pattern.lastIndex;
-
-      const bucket = imageBuckets.get(original);
-      if (bucket && bucket.length > 0) {
-        const image = bucket.shift();
-        if (!image) {
-          warnings.push(`No encoded image available for ${original}`);
-          processed += original;
-          continue;
-        }
-        const token = `__INTERNAL_IMAGE_${placeholders.length}__`;
-        placeholders.push({ token, image });
-        processed += token;
-      } else {
-        if (resolvedLinks.has(original)) {
-          warnings.push(`No encoded image available for ${original}`);
-        }
-        processed += original;
+      if (match.index > cursor) {
+        segments.push({
+          type: 'text',
+          value: markdown.slice(cursor, match.index),
+        });
       }
-    }
-    processed += markdown.slice(cursor);
-
-    const rendered = await this.markdownRenderer.render(processed, sourcePath);
-    let html = rendered;
-
-    for (const { token, image } of placeholders) {
-      const tag = buildImageTag(image);
-      html = html.split(token).join(tag);
+      segments.push({ type: 'embed', original });
+      cursor = pattern.lastIndex;
     }
 
-    return html;
+    if (cursor < markdown.length) {
+      segments.push({ type: 'text', value: markdown.slice(cursor) });
+    }
+
+    return segments;
   }
 }

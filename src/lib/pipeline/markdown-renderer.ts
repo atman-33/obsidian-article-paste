@@ -12,7 +12,7 @@ export class MarkdownItRenderer implements MarkdownRendererService {
     });
   }
 
-  async render(markdown: string): Promise<string> {
+  async render(markdown: string, _sourcePath: string | null): Promise<string> {
     return this.md.render(markdown);
   }
 }
