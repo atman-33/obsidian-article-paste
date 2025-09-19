@@ -20,7 +20,7 @@
   - Transform markdown and encoded images into clipboard payload with HTML/text channels and first image as bitmap entry
   - Ensure HTML references align with data URIs from encoder
   - _Requirements: 1.1, 2.2, 2.3_
-- [ ] 1.5 Implement clipboard writer service
+- [x] 1.5 Implement clipboard writer service
   - Use Electron clipboard APIs to write payload atomically, hooking into error handling pathways
   - Provide testable abstraction for mocked clipboard operations
   - _Requirements: 2.3, 2.4_
