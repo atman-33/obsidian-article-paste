@@ -1,9 +1,12 @@
 import type {
   ClipboardComposer,
+  ClipboardGuardResult,
   ClipboardGuards,
   ClipboardWriter,
   EmbedResolver,
   ImageEncoder,
+  NoticeSession,
+  NoticeService,
   SelectionService,
 } from './services';
 import type {
@@ -51,7 +54,15 @@ export class UnimplementedClipboardWriter implements ClipboardWriter {
 }
 
 export class UnimplementedClipboardGuards implements ClipboardGuards {
-  async ensureWithinLimits(_images: EncodedImage[]): Promise<void> {
+  async ensureWithinLimits(
+    _images: EncodedImage[],
+  ): Promise<ClipboardGuardResult> {
+    throw new Error(NOT_IMPLEMENTED);
+  }
+}
+
+export class UnimplementedNoticeService implements NoticeService {
+  createSession(): NoticeSession {
     throw new Error(NOT_IMPLEMENTED);
   }
 }

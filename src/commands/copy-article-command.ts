@@ -84,7 +84,18 @@ export class CopyArticleCommand {
 
     if (clipboardGuards) {
       try {
-        await clipboardGuards.ensureWithinLimits(encodedImages);
+        const guardResult =
+          await clipboardGuards.ensureWithinLimits(encodedImages);
+        if (guardResult.warnings.length > 0) {
+          warnings.push(...guardResult.warnings);
+          for (const warning of guardResult.warnings) {
+            noticeSession.warn(warning);
+          }
+        }
+        if (!guardResult.allow) {
+          noticeSession.flush();
+          return;
+        }
       } catch (error) {
         const message = formatError(error);
         warnings.push(message);

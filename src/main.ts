@@ -6,9 +6,10 @@ import { HtmlClipboardComposer } from './lib/pipeline/clipboard-composer';
 import { ElectronClipboardWriter } from './lib/pipeline/clipboard-writer';
 import { ObsidianNoticeService } from './lib/obsidian-notice-service';
 import { EditorSelectionService } from './lib/pipeline/selection-service';
-import { UnimplementedClipboardGuards } from './lib/pipeline/stubs';
+import { ClipboardSizeGuard } from './lib/pipeline/clipboard-guard';
 import type { CopyArticleDependencies } from './lib/pipeline/services';
 import { DEFAULT_SETTINGS, type ArticlePasteSettings } from './lib/settings';
+import { ArticlePasteSettingTab } from './settings-tab';
 
 export default class ArticlePastePlugin extends Plugin {
   settings: ArticlePasteSettings;
@@ -17,7 +18,10 @@ export default class ArticlePastePlugin extends Plugin {
   async onload(): Promise<void> {
     await this.loadSettings();
 
+    this.addSettingTab(new ArticlePasteSettingTab(this.app, this));
+
     const noticeService = new ObsidianNoticeService();
+    const clipboardGuards = new ClipboardSizeGuard(() => this.settings);
 
     const dependencies: CopyArticleDependencies = {
       selectionService: new EditorSelectionService(this.app),
@@ -26,7 +30,7 @@ export default class ArticlePastePlugin extends Plugin {
       clipboardComposer: new HtmlClipboardComposer(),
       clipboardWriter: new ElectronClipboardWriter(),
       noticeService,
-      clipboardGuards: new UnimplementedClipboardGuards(),
+      clipboardGuards,
     };
 
     this.copyCommand = new CopyArticleCommand(dependencies);

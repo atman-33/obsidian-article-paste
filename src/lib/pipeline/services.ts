@@ -41,8 +41,13 @@ export interface NoticeService {
   createSession(): NoticeSession;
 }
 
+export interface ClipboardGuardResult {
+  allow: boolean;
+  warnings: string[];
+}
+
 export interface ClipboardGuards {
-  ensureWithinLimits(images: EncodedImage[]): Promise<void>;
+  ensureWithinLimits(images: EncodedImage[]): Promise<ClipboardGuardResult>;
 }
 
 export interface CopyArticleDependencies {

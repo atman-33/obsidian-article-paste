@@ -34,7 +34,7 @@
 - [ ] 1.8 Add unit tests for services
   - Cover selection edge cases, embed resolution, and image encoding logic with fixtures
   - _Requirements: 1.1, 1.2, 1.3_
-- [ ] 1.9 Wire settings for clipboard size threshold and fallbacks
+- [x] 1.9 Wire settings for clipboard size threshold and fallbacks
   - Extend plugin settings schema with size limit field and toggle for markdown-only fallback
   - Persist settings and integrate with image encoder logic
   - _Requirements: 1.3, 2.4_
