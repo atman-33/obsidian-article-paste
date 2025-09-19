@@ -2,6 +2,7 @@ import type {
   ClipboardPayload,
   ComposeClipboardInput,
   EncodedImage,
+  EmbedResolutionResult,
   ResolvedEmbed,
   SelectionSnapshot,
 } from './types';
@@ -14,7 +15,7 @@ export interface EmbedResolver {
   collectEmbeds(
     markdown: string,
     sourcePath: string | null,
-  ): Promise<ResolvedEmbed[]>;
+  ): Promise<EmbedResolutionResult>;
 }
 
 export interface ImageEncoder {

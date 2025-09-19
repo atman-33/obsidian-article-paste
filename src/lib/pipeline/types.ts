@@ -11,7 +11,7 @@ export interface SelectionSnapshot {
 export interface ResolvedEmbed {
   originalLink: string;
   file: TFile;
-  buffer: ArrayBuffer;
+  buffer: ArrayBufferLike;
   mimeType: string;
   sizeBytes: number;
 }
@@ -35,4 +35,9 @@ export interface ComposeClipboardInput {
   selection: SelectionSnapshot;
   embeds: ResolvedEmbed[];
   encodedImages: EncodedImage[];
+}
+
+export interface EmbedResolutionResult {
+  embeds: ResolvedEmbed[];
+  warnings: string[];
 }

@@ -10,6 +10,7 @@ import type {
   ClipboardPayload,
   ComposeClipboardInput,
   EncodedImage,
+  EmbedResolutionResult,
   ResolvedEmbed,
   SelectionSnapshot,
 } from './types';
@@ -26,7 +27,7 @@ export class UnimplementedEmbedResolver implements EmbedResolver {
   async collectEmbeds(
     _markdown: string,
     _sourcePath: string | null,
-  ): Promise<ResolvedEmbed[]> {
+  ): Promise<EmbedResolutionResult> {
     throw new Error(NOT_IMPLEMENTED);
   }
 }

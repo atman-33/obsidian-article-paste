@@ -48,10 +48,12 @@ export class CopyArticleCommand {
     let embeds: ResolvedEmbed[] = [];
 
     try {
-      embeds = await embedResolver.collectEmbeds(
+      const result = await embedResolver.collectEmbeds(
         selection.markdown,
         selection.sourcePath,
       );
+      embeds = result.embeds;
+      warnings.push(...result.warnings);
     } catch (error) {
       warnings.push(`Unable to resolve embeds: ${formatError(error)}`);
     }

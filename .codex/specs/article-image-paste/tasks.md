@@ -8,7 +8,7 @@
   - Write `SelectionService` that extracts markdown range and metadata from active editor
   - Cover cases where no selection is present by falling back to full file content
   - _Requirements: 1.1_
-- [ ] 1.2 Implement embed resolver
+- [x] 1.2 Implement embed resolver
   - Parse wiki and markdown image embeds, resolve to `TFile` instances using vault helpers
   - Aggregate missing or unsupported embeds as warnings without throwing
   - _Requirements: 1.2, 3.1, 3.4_
