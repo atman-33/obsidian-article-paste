@@ -24,7 +24,7 @@
   - Use Electron clipboard APIs to write payload atomically, hooking into error handling pathways
   - Provide testable abstraction for mocked clipboard operations
   - _Requirements: 2.3, 2.4_
-- [ ] 1.6 Implement notice service aggregation
+- [x] 1.6 Implement notice service aggregation
   - Collect success, warning, and error messages from pipeline and display as single Obsidian notice per execution
   - _Requirements: 3.1, 3.2, 3.3, 3.4_
 - [ ] 1.7 Add integration tests for copy pipeline

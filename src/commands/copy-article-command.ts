@@ -30,17 +30,21 @@ export class CopyArticleCommand {
       clipboardGuards,
     } = this.deps;
 
+    const noticeSession = noticeService.createSession();
+
     let selection: SelectionSnapshot | null = null;
 
     try {
       selection = await selectionService.getActiveSelection();
     } catch (error) {
-      noticeService.error(`Failed to read selection: ${formatError(error)}`);
+      noticeSession.error(`Failed to read selection: ${formatError(error)}`);
+      noticeSession.flush();
       return;
     }
 
     if (!selection) {
-      noticeService.warn('Nothing selected to copy.');
+      noticeSession.warn('Nothing selected to copy.');
+      noticeSession.flush();
       return;
     }
 
@@ -53,9 +57,16 @@ export class CopyArticleCommand {
         selection.sourcePath,
       );
       embeds = result.embeds;
-      warnings.push(...result.warnings);
+      if (result.warnings.length > 0) {
+        warnings.push(...result.warnings);
+        for (const warning of result.warnings) {
+          noticeSession.warn(warning);
+        }
+      }
     } catch (error) {
-      warnings.push(`Unable to resolve embeds: ${formatError(error)}`);
+      const message = `Unable to resolve embeds: ${formatError(error)}`;
+      warnings.push(message);
+      noticeSession.warn(message);
     }
 
     const encodedImages: EncodedImage[] = [];
@@ -65,9 +76,9 @@ export class CopyArticleCommand {
         const encoded = await imageEncoder.encode(embed);
         encodedImages.push(encoded);
       } catch (error) {
-        warnings.push(
-          `Failed to encode ${embed.originalLink}: ${formatError(error)}`,
-        );
+        const message = `Failed to encode ${embed.originalLink}: ${formatError(error)}`;
+        warnings.push(message);
+        noticeSession.warn(message);
       }
     }
 
@@ -75,8 +86,10 @@ export class CopyArticleCommand {
       try {
         await clipboardGuards.ensureWithinLimits(encodedImages);
       } catch (error) {
-        warnings.push(formatError(error));
-        noticeService.warn(warnings.join('\n'));
+        const message = formatError(error);
+        warnings.push(message);
+        noticeSession.warn(message);
+        noticeSession.flush();
         return;
       }
     }
@@ -89,9 +102,10 @@ export class CopyArticleCommand {
         encodedImages,
       });
     } catch (error) {
-      noticeService.error(
+      noticeSession.error(
         `Failed to compose clipboard payload: ${formatError(error)}`,
       );
+      noticeSession.flush();
       return;
     }
 
@@ -100,15 +114,20 @@ export class CopyArticleCommand {
     try {
       await clipboardWriter.write(payload);
     } catch (error) {
-      noticeService.error(`Clipboard write failed: ${formatError(error)}`);
+      noticeSession.error(`Clipboard write failed: ${formatError(error)}`);
+      noticeSession.flush();
       return;
     }
 
     if (payload.warnings.length > 0) {
-      noticeService.warn(payload.warnings.join('\n'));
+      for (const warning of payload.warnings) {
+        noticeSession.warn(warning);
+      }
+      noticeSession.flush();
       return;
     }
 
-    noticeService.success('Selection copied for article paste.');
+    noticeSession.success('Selection copied for article paste.');
+    noticeSession.flush();
   }
 }

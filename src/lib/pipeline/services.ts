@@ -30,10 +30,15 @@ export interface ClipboardWriter {
   write(payload: ClipboardPayload): Promise<void>;
 }
 
-export interface NoticeService {
+export interface NoticeSession {
   success(message: string): void;
   warn(message: string): void;
   error(message: string): void;
+  flush(): void;
+}
+
+export interface NoticeService {
+  createSession(): NoticeSession;
 }
 
 export interface ClipboardGuards {

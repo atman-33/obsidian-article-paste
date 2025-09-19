@@ -36,7 +36,9 @@ export default class ArticlePastePlugin extends Plugin {
       name: 'Copy selection as article',
       callback: async () => {
         if (!this.copyCommand) {
-          noticeService.error('Copy command is not ready.');
+          const session = noticeService.createSession();
+          session.error('Copy command is not ready.');
+          session.flush();
           return;
         }
         await this.copyCommand.execute();
