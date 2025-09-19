@@ -1,4 +1,4 @@
-import { Plugin } from 'obsidian';
+import { MarkdownView, Plugin } from 'obsidian';
 import { CopyArticleCommand } from './commands/copy-article-command';
 import { VaultEmbedResolver } from './lib/pipeline/embed-resolver';
 import { ElectronImageEncoder } from './lib/pipeline/image-encoder';
@@ -40,19 +40,39 @@ export default class ArticlePastePlugin extends Plugin {
 
     this.copyCommand = new CopyArticleCommand(dependencies);
 
+    const commandCallback = async () => {
+      if (!this.copyCommand) {
+        const session = noticeService.createSession();
+        session.error('Copy command is not ready.');
+        session.flush();
+        return;
+      }
+      await this.copyCommand.execute();
+    };
+
     this.addCommand({
       id: 'copy-selection-as-article',
       name: 'Copy selection as article',
-      callback: async () => {
-        if (!this.copyCommand) {
-          const session = noticeService.createSession();
-          session.error('Copy command is not ready.');
-          session.flush();
+      callback: commandCallback,
+    });
+
+    this.registerEvent(
+      this.app.workspace.on('editor-menu', (menu, editor, view) => {
+        if (!this.copyCommand || !(view instanceof MarkdownView)) {
           return;
         }
-        await this.copyCommand.execute();
-      },
-    });
+        const selection = editor.getSelection();
+        menu.addItem((item) => {
+          item
+            .setTitle('Copy selection as article')
+            .setIcon('copy')
+            .setDisabled(!selection)
+            .onClick(async () => {
+              await commandCallback();
+            });
+        });
+      }),
+    );
   }
 
   onunload(): void {
