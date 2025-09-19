@@ -1,6 +1,6 @@
 # Implementation Plan
 
-- [ ] 1. Create clipboard orchestration command
+- [x] 1. Create clipboard orchestration command
   - Generate command module that wires `copy-selection-as-article` to selection retrieval, processing pipeline, and notices
   - Include dependency injection points for services defined in design
   - _Requirements: 1.1, 1.4, 3.3_
