@@ -1,5 +1,6 @@
 import { type App, PluginSettingTab, Setting } from 'obsidian';
 import type ArticlePastePlugin from './main';
+import type { CopyFormat } from './lib/settings';
 
 function formatBytes(value: number): string {
   if (value % (1024 * 1024) === 0 && value !== 0) {
@@ -10,6 +11,11 @@ function formatBytes(value: number): string {
   }
   return `${value} B`;
 }
+
+const COPY_FORMAT_LABELS: Record<CopyFormat, string> = {
+  markdown: 'Markdown (preserve syntax)',
+  html: 'HTML (render formatting)',
+};
 
 export class ArticlePasteSettingTab extends PluginSettingTab {
   constructor(
@@ -62,6 +68,23 @@ export class ArticlePasteSettingTab extends PluginSettingTab {
             this.plugin.settings.markdownOnlyFallback = value;
             await this.plugin.saveSettings();
           });
+      });
+
+    new Setting(containerEl)
+      .setName('Copy format')
+      .setDesc(
+        'Choose whether to paste Markdown syntax or rendered HTML into other editors.',
+      )
+      .addDropdown((dropdown) => {
+        dropdown.addOption('markdown', COPY_FORMAT_LABELS.markdown);
+        dropdown.addOption('html', COPY_FORMAT_LABELS.html);
+        dropdown.setValue(this.plugin.settings.copyFormat);
+        dropdown.onChange(async (value) => {
+          if (value === 'markdown' || value === 'html') {
+            this.plugin.settings.copyFormat = value;
+            await this.plugin.saveSettings();
+          }
+        });
       });
   }
 }

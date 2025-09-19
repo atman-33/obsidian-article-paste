@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import type { ArticlePasteSettings } from '../settings';
 import { ClipboardSizeGuard } from './clipboard-guard';
 import type { EncodedImage } from './types';
+import type { ArticlePasteSettings } from '../settings';
 
 function createImage(sizeBytes: number): EncodedImage {
   return {
@@ -26,6 +26,7 @@ describe('ClipboardSizeGuard', () => {
         ({
           clipboardSizeLimit: 10,
           markdownOnlyFallback: true,
+          copyFormat: 'markdown',
         }) as ArticlePasteSettings,
     );
 
@@ -38,6 +39,7 @@ describe('ClipboardSizeGuard', () => {
     const settings: ArticlePasteSettings = {
       clipboardSizeLimit: 5,
       markdownOnlyFallback: false,
+      copyFormat: 'markdown',
     };
     const guard = new ClipboardSizeGuard(() => settings);
 
@@ -53,6 +55,7 @@ describe('ClipboardSizeGuard', () => {
     const settings: ArticlePasteSettings = {
       clipboardSizeLimit: 5,
       markdownOnlyFallback: true,
+      copyFormat: 'markdown',
     };
     const guard = new ClipboardSizeGuard(() => settings);
     const images = [createImage(10)];

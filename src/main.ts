@@ -7,6 +7,7 @@ import { ElectronClipboardWriter } from './lib/pipeline/clipboard-writer';
 import { ObsidianNoticeService } from './lib/obsidian-notice-service';
 import { EditorSelectionService } from './lib/pipeline/selection-service';
 import { ClipboardSizeGuard } from './lib/pipeline/clipboard-guard';
+import { MarkdownItRenderer } from './lib/pipeline/markdown-renderer';
 import type { CopyArticleDependencies } from './lib/pipeline/services';
 import { DEFAULT_SETTINGS, type ArticlePasteSettings } from './lib/settings';
 import { ArticlePasteSettingTab } from './settings-tab';
@@ -22,12 +23,16 @@ export default class ArticlePastePlugin extends Plugin {
 
     const noticeService = new ObsidianNoticeService();
     const clipboardGuards = new ClipboardSizeGuard(() => this.settings);
+    const markdownRenderer = new MarkdownItRenderer();
 
     const dependencies: CopyArticleDependencies = {
       selectionService: new EditorSelectionService(this.app),
       embedResolver: new VaultEmbedResolver(this.app),
       imageEncoder: new ElectronImageEncoder(),
-      clipboardComposer: new HtmlClipboardComposer(),
+      clipboardComposer: new HtmlClipboardComposer(
+        () => this.settings,
+        markdownRenderer,
+      ),
       clipboardWriter: new ElectronClipboardWriter(),
       noticeService,
       clipboardGuards,

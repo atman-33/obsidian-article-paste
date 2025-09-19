@@ -30,6 +30,10 @@ export interface ClipboardWriter {
   write(payload: ClipboardPayload): Promise<void>;
 }
 
+export interface MarkdownRendererService {
+  render(markdown: string, sourcePath: string | null): Promise<string>;
+}
+
 export interface NoticeSession {
   success(message: string): void;
   warn(message: string): void;

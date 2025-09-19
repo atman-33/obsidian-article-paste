@@ -9,4 +9,8 @@ describe('DEFAULT_SETTINGS', () => {
   it('enables markdown fallback by default', () => {
     expect(DEFAULT_SETTINGS.markdownOnlyFallback).toBe(true);
   });
+
+  it('defaults copy format to markdown', () => {
+    expect(DEFAULT_SETTINGS.copyFormat).toBe('markdown');
+  });
 });

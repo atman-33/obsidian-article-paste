@@ -4,6 +4,8 @@ import type {
   ComposeClipboardInput,
   EncodedImage,
 } from './types';
+import type { ArticlePasteSettings } from '../settings';
+import type { MarkdownRendererService } from './services';
 
 const EMBED_PATTERN = /!\[\[[^\]]+\]\]|!\[[^\]]*\]\([^)]*\)/g;
 
@@ -31,9 +33,20 @@ function buildImageTag(image: EncodedImage): string {
   return `<img src="${src}" data-path="${dataPath}" alt="${altText}">`;
 }
 
+interface PlaceholderEntry {
+  token: string;
+  image: EncodedImage;
+}
+
 export class HtmlClipboardComposer implements ClipboardComposer {
+  constructor(
+    private readonly getSettings: () => ArticlePasteSettings,
+    private readonly markdownRenderer: MarkdownRendererService,
+  ) {}
+
   async compose(input: ComposeClipboardInput): Promise<ClipboardPayload> {
     const { selection, embeds, encodedImages } = input;
+    const format = this.getSettings().copyFormat;
 
     const imageBuckets = new Map<string, EncodedImage[]>();
     for (const image of encodedImages) {
@@ -45,7 +58,51 @@ export class HtmlClipboardComposer implements ClipboardComposer {
 
     const resolvedLinks = new Set(embeds.map((embed) => embed.originalLink));
     const warnings: string[] = [];
-    const markdown = selection.markdown;
+
+    let bodyHtml: string;
+
+    if (format === 'html') {
+      bodyHtml = await this.composeHtml(
+        selection.markdown,
+        selection.sourcePath,
+        imageBuckets,
+        resolvedLinks,
+        warnings,
+      );
+    } else {
+      bodyHtml = this.composeEscaped(
+        selection.markdown,
+        imageBuckets,
+        resolvedLinks,
+        warnings,
+      );
+    }
+
+    for (const [original, bucket] of imageBuckets.entries()) {
+      if (bucket.length > 0) {
+        warnings.push(`Unused encoded image for ${original}`);
+      }
+    }
+
+    const attributes = selection.sourcePath
+      ? ` data-source-path="${escapeAttribute(selection.sourcePath)}"`
+      : '';
+    const html = `<!DOCTYPE html><html><body><div${attributes}>${bodyHtml}</div></body></html>`;
+
+    return {
+      text: selection.markdown,
+      html,
+      images: encodedImages,
+      warnings,
+    };
+  }
+
+  private composeEscaped(
+    markdown: string,
+    imageBuckets: Map<string, EncodedImage[]>,
+    resolvedLinks: Set<string>,
+    warnings: string[],
+  ): string {
     const htmlSegments: string[] = [];
     let cursor = 0;
 
@@ -89,23 +146,58 @@ export class HtmlClipboardComposer implements ClipboardComposer {
 
     appendPlain(cursor, markdown.length);
 
-    for (const [original, bucket] of imageBuckets.entries()) {
-      if (bucket.length > 0) {
-        warnings.push(`Unused encoded image for ${original}`);
+    return htmlSegments.join('');
+  }
+
+  private async composeHtml(
+    markdown: string,
+    sourcePath: string | null,
+    imageBuckets: Map<string, EncodedImage[]>,
+    resolvedLinks: Set<string>,
+    warnings: string[],
+  ): Promise<string> {
+    let processed = '';
+    const placeholders: PlaceholderEntry[] = [];
+    let cursor = 0;
+
+    const pattern = new RegExp(EMBED_PATTERN.source, 'g');
+    for (;;) {
+      const match = pattern.exec(markdown);
+      if (!match) {
+        break;
+      }
+      const [original] = match;
+      processed += markdown.slice(cursor, match.index);
+      cursor = pattern.lastIndex;
+
+      const bucket = imageBuckets.get(original);
+      if (bucket && bucket.length > 0) {
+        const image = bucket.shift();
+        if (!image) {
+          warnings.push(`No encoded image available for ${original}`);
+          processed += original;
+          continue;
+        }
+        const token = `__INTERNAL_IMAGE_${placeholders.length}__`;
+        placeholders.push({ token, image });
+        processed += token;
+      } else {
+        if (resolvedLinks.has(original)) {
+          warnings.push(`No encoded image available for ${original}`);
+        }
+        processed += original;
       }
     }
+    processed += markdown.slice(cursor);
 
-    const bodyHtml = htmlSegments.join('');
-    const attributes = selection.sourcePath
-      ? ` data-source-path="${escapeAttribute(selection.sourcePath)}"`
-      : '';
-    const html = `<!DOCTYPE html><html><body><div${attributes}>${bodyHtml}</div></body></html>`;
+    const rendered = await this.markdownRenderer.render(processed, sourcePath);
+    let html = rendered;
 
-    return {
-      text: markdown,
-      html,
-      images: encodedImages,
-      warnings,
-    };
+    for (const { token, image } of placeholders) {
+      const tag = buildImageTag(image);
+      html = html.split(token).join(tag);
+    }
+
+    return html;
   }
 }

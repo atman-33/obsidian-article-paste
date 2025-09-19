@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { HtmlClipboardComposer } from './clipboard-composer';
+import type { ArticlePasteSettings } from '../settings';
 import type {
   ComposeClipboardInput,
   EncodedImage,
   ResolvedEmbed,
   SelectionSnapshot,
 } from './types';
+import type { MarkdownRendererService } from './services';
 
 function createSelection(
   markdown: string,
@@ -47,13 +49,28 @@ function createEncoded(
   };
 }
 
+const markdownRendererStub: MarkdownRendererService = {
+  async render(markdown: string): Promise<string> {
+    return `<p>${markdown}</p>`;
+  },
+};
+
 describe('HtmlClipboardComposer', () => {
-  it('replaces embeds with data URI images and escapes surrounding text', async () => {
+  it('replaces embeds with data URI images and escapes surrounding text (markdown format)', async () => {
     const embed = createEmbed('![[img.png]]', 'assets/img.png', 'image/png', 3);
     const encoded = createEncoded(embed, 'data:image/png;base64,AAA', 3);
     const selection = createSelection('Intro text\n![[img.png]]\nMore text');
 
-    const composer = new HtmlClipboardComposer();
+    const settings: ArticlePasteSettings = {
+      clipboardSizeLimit: 0,
+      markdownOnlyFallback: true,
+      copyFormat: 'markdown',
+    };
+
+    const composer = new HtmlClipboardComposer(
+      () => settings,
+      markdownRendererStub,
+    );
     const input: ComposeClipboardInput = {
       selection,
       embeds: [embed],
@@ -65,8 +82,34 @@ describe('HtmlClipboardComposer', () => {
     expect(payload.text).toBe(selection.markdown);
     expect(payload.html).toContain('<img');
     expect(payload.html).toContain('data:image/png;base64,AAA');
-    expect(payload.html).toContain('Intro text'.replace(/</g, '&lt;')); // ensures escaping
+    expect(payload.html).toContain('Intro text'.replace(/</g, '&lt;'));
     expect(payload.html).toContain('<br>More text');
+    expect(payload.warnings).toHaveLength(0);
+  });
+
+  it('renders markdown to HTML when html format selected', async () => {
+    const embed = createEmbed('![[img.png]]', 'assets/img.png', 'image/png', 3);
+    const encoded = createEncoded(embed, 'data:image/png;base64,AAA', 3);
+    const selection = createSelection('# Heading\n\n![[img.png]]');
+
+    const settings: ArticlePasteSettings = {
+      clipboardSizeLimit: 0,
+      markdownOnlyFallback: true,
+      copyFormat: 'html',
+    };
+
+    const composer = new HtmlClipboardComposer(
+      () => settings,
+      markdownRendererStub,
+    );
+    const payload = await composer.compose({
+      selection,
+      embeds: [embed],
+      encodedImages: [encoded],
+    });
+
+    expect(payload.html).toContain('<p># Heading');
+    expect(payload.html).toContain('<img src="data:image/png;base64,AAA"');
     expect(payload.warnings).toHaveLength(0);
   });
 
@@ -78,8 +121,16 @@ describe('HtmlClipboardComposer', () => {
       1,
     );
     const selection = createSelection('![[missing.png]]');
+    const settings: ArticlePasteSettings = {
+      clipboardSizeLimit: 0,
+      markdownOnlyFallback: true,
+      copyFormat: 'markdown',
+    };
 
-    const composer = new HtmlClipboardComposer();
+    const composer = new HtmlClipboardComposer(
+      () => settings,
+      markdownRendererStub,
+    );
     const payload = await composer.compose({
       selection,
       embeds: [embed],
@@ -94,7 +145,16 @@ describe('HtmlClipboardComposer', () => {
 
   it('ignores unresolved embeds when no encoded image exists', async () => {
     const selection = createSelection('![[unresolved.png]]');
-    const composer = new HtmlClipboardComposer();
+    const settings: ArticlePasteSettings = {
+      clipboardSizeLimit: 0,
+      markdownOnlyFallback: true,
+      copyFormat: 'markdown',
+    };
+
+    const composer = new HtmlClipboardComposer(
+      () => settings,
+      markdownRendererStub,
+    );
 
     const payload = await composer.compose({
       selection,
@@ -109,8 +169,16 @@ describe('HtmlClipboardComposer', () => {
     const embed = createEmbed('![[img.png]]', 'assets/img.png', 'image/png', 3);
     const encoded = createEncoded(embed, 'data:image/png;base64,AAA', 3);
     const selection = createSelection('No images here');
+    const settings: ArticlePasteSettings = {
+      clipboardSizeLimit: 0,
+      markdownOnlyFallback: true,
+      copyFormat: 'markdown',
+    };
 
-    const composer = new HtmlClipboardComposer();
+    const composer = new HtmlClipboardComposer(
+      () => settings,
+      markdownRendererStub,
+    );
     const payload = await composer.compose({
       selection,
       embeds: [embed],
