@@ -2,10 +2,10 @@ import { Plugin } from 'obsidian';
 import { CopyArticleCommand } from './commands/copy-article-command';
 import { VaultEmbedResolver } from './lib/pipeline/embed-resolver';
 import { ElectronImageEncoder } from './lib/pipeline/image-encoder';
+import { HtmlClipboardComposer } from './lib/pipeline/clipboard-composer';
 import { ObsidianNoticeService } from './lib/obsidian-notice-service';
 import { EditorSelectionService } from './lib/pipeline/selection-service';
 import {
-  UnimplementedClipboardComposer,
   UnimplementedClipboardGuards,
   UnimplementedClipboardWriter,
 } from './lib/pipeline/stubs';
@@ -25,7 +25,7 @@ export default class ArticlePastePlugin extends Plugin {
       selectionService: new EditorSelectionService(this.app),
       embedResolver: new VaultEmbedResolver(this.app),
       imageEncoder: new ElectronImageEncoder(),
-      clipboardComposer: new UnimplementedClipboardComposer(),
+      clipboardComposer: new HtmlClipboardComposer(),
       clipboardWriter: new UnimplementedClipboardWriter(),
       noticeService,
       clipboardGuards: new UnimplementedClipboardGuards(),

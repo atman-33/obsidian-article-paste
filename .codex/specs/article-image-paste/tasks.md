@@ -16,7 +16,7 @@
   - Load resolved files, convert to PNG `NativeImage`, compute base64 data URIs, and enforce size threshold checks
   - Emit warnings and abort when exceeding configured clipboard size limit
   - _Requirements: 1.3, 2.1, 2.2_
-- [ ] 1.4 Implement clipboard composer
+- [x] 1.4 Implement clipboard composer
   - Transform markdown and encoded images into clipboard payload with HTML/text channels and first image as bitmap entry
   - Ensure HTML references align with data URIs from encoder
   - _Requirements: 1.1, 2.2, 2.3_
