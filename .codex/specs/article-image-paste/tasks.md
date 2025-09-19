@@ -12,7 +12,7 @@
   - Parse wiki and markdown image embeds, resolve to `TFile` instances using vault helpers
   - Aggregate missing or unsupported embeds as warnings without throwing
   - _Requirements: 1.2, 3.1, 3.4_
-- [ ] 1.3 Implement image encoder
+- [x] 1.3 Implement image encoder
   - Load resolved files, convert to PNG `NativeImage`, compute base64 data URIs, and enforce size threshold checks
   - Emit warnings and abort when exceeding configured clipboard size limit
   - _Requirements: 1.3, 2.1, 2.2_

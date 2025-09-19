@@ -1,13 +1,13 @@
 import { Plugin } from 'obsidian';
 import { CopyArticleCommand } from './commands/copy-article-command';
 import { VaultEmbedResolver } from './lib/pipeline/embed-resolver';
+import { ElectronImageEncoder } from './lib/pipeline/image-encoder';
 import { ObsidianNoticeService } from './lib/obsidian-notice-service';
 import { EditorSelectionService } from './lib/pipeline/selection-service';
 import {
   UnimplementedClipboardComposer,
   UnimplementedClipboardGuards,
   UnimplementedClipboardWriter,
-  UnimplementedImageEncoder,
 } from './lib/pipeline/stubs';
 import type { CopyArticleDependencies } from './lib/pipeline/services';
 import { DEFAULT_SETTINGS, type ArticlePasteSettings } from './lib/settings';
@@ -24,7 +24,7 @@ export default class ArticlePastePlugin extends Plugin {
     const dependencies: CopyArticleDependencies = {
       selectionService: new EditorSelectionService(this.app),
       embedResolver: new VaultEmbedResolver(this.app),
-      imageEncoder: new UnimplementedImageEncoder(),
+      imageEncoder: new ElectronImageEncoder(),
       clipboardComposer: new UnimplementedClipboardComposer(),
       clipboardWriter: new UnimplementedClipboardWriter(),
       noticeService,
