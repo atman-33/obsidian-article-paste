@@ -1,13 +1,13 @@
 import { Plugin } from 'obsidian';
 import { CopyArticleCommand } from './commands/copy-article-command';
 import { ObsidianNoticeService } from './lib/obsidian-notice-service';
+import { EditorSelectionService } from './lib/pipeline/selection-service';
 import {
   UnimplementedClipboardComposer,
   UnimplementedClipboardGuards,
   UnimplementedClipboardWriter,
   UnimplementedEmbedResolver,
   UnimplementedImageEncoder,
-  UnimplementedSelectionService,
 } from './lib/pipeline/stubs';
 import type { CopyArticleDependencies } from './lib/pipeline/services';
 import { DEFAULT_SETTINGS, type ArticlePasteSettings } from './lib/settings';
@@ -22,7 +22,7 @@ export default class ArticlePastePlugin extends Plugin {
     const noticeService = new ObsidianNoticeService();
 
     const dependencies: CopyArticleDependencies = {
-      selectionService: new UnimplementedSelectionService(),
+      selectionService: new EditorSelectionService(this.app),
       embedResolver: new UnimplementedEmbedResolver(),
       imageEncoder: new UnimplementedImageEncoder(),
       clipboardComposer: new UnimplementedClipboardComposer(),

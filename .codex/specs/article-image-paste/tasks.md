@@ -4,7 +4,7 @@
   - Generate command module that wires `copy-selection-as-article` to selection retrieval, processing pipeline, and notices
   - Include dependency injection points for services defined in design
   - _Requirements: 1.1, 1.4, 3.3_
-- [ ] 1.1 Implement selection service
+- [x] 1.1 Implement selection service
   - Write `SelectionService` that extracts markdown range and metadata from active editor
   - Cover cases where no selection is present by falling back to full file content
   - _Requirements: 1.1_
