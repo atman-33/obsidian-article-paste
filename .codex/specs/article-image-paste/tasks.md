@@ -1,0 +1,40 @@
+# Implementation Plan
+
+- [x] 1. Create clipboard orchestration command
+  - Generate command module that wires `copy-selection-as-article` to selection retrieval, processing pipeline, and notices
+  - Include dependency injection points for services defined in design
+  - _Requirements: 1.1, 1.4, 3.3_
+- [x] 1.1 Implement selection service
+  - Write `SelectionService` that extracts markdown range and metadata from active editor
+  - Cover cases where no selection is present by falling back to full file content
+  - _Requirements: 1.1_
+- [x] 1.2 Implement embed resolver
+  - Parse wiki and markdown image embeds, resolve to `TFile` instances using vault helpers
+  - Aggregate missing or unsupported embeds as warnings without throwing
+  - _Requirements: 1.2, 3.1, 3.4_
+- [x] 1.3 Implement image encoder
+  - Load resolved files, convert to PNG `NativeImage`, compute base64 data URIs, and enforce size threshold checks
+  - Emit warnings and abort when exceeding configured clipboard size limit
+  - _Requirements: 1.3, 2.1, 2.2_
+- [x] 1.4 Implement clipboard composer
+  - Transform markdown and encoded images into clipboard payload with HTML/text channels and first image as bitmap entry
+  - Ensure HTML references align with data URIs from encoder
+  - _Requirements: 1.1, 2.2, 2.3_
+- [x] 1.5 Implement clipboard writer service
+  - Use Electron clipboard APIs to write payload atomically, hooking into error handling pathways
+  - Provide testable abstraction for mocked clipboard operations
+  - _Requirements: 2.3, 2.4_
+- [x] 1.6 Implement notice service aggregation
+  - Collect success, warning, and error messages from pipeline and display as single Obsidian notice per execution
+  - _Requirements: 3.1, 3.2, 3.3, 3.4_
+- [ ] 1.7 Add integration tests for copy pipeline
+  - Mock services and clipboard to verify clipboard payload consistency and notice aggregation
+  - Validate fallback behaviour when editor rejects data URIs by simulating error path
+  - _Requirements: 1.3, 2.4, 3.4_
+- [ ] 1.8 Add unit tests for services
+  - Cover selection edge cases, embed resolution, and image encoding logic with fixtures
+  - _Requirements: 1.1, 1.2, 1.3_
+- [x] 1.9 Wire settings for clipboard size threshold and fallbacks
+  - Extend plugin settings schema with size limit field and toggle for markdown-only fallback
+  - Persist settings and integrate with image encoder logic
+  - _Requirements: 1.3, 2.4_

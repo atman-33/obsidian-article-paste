@@ -1,95 +1,69 @@
-# Obsidian Sample Plugin
+# Article Paste
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+An Obsidian plugin that copies the current selection as web-ready article content, including inline images embedded directly in the clipboard.
 
-This project uses TypeScript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in TypeScript Definition format, which contains TSDoc comments describing what it does.
+## Features
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open Sample Modal" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+- Copy the current selection (or entire note when nothing is selected) into the clipboard with Markdown and HTML representations
+- Resolve wiki-style and Markdown image embeds into base64 data URIs so browsers paste inline images without manual uploads
+- Guard against oversized clipboard payloads with configurable limits and optional markdown-only fallback when images are too large
+- Aggregate success and warning notices so you immediately see missing files, unsupported embeds, or skipped images
+- Choose between rendered HTML output or escaped Markdown when pasting into external editors
 
-## First time developing plugins?
+## How to Use
 
-Quick starting guide for new plugin devs:
+1. Install and enable the plugin in Obsidian settings
+2. Open a note and select the content you want to publish
+3. Run the `Copy selection as article` command or use the editor context menu entry
+4. Paste into your web article editor; the clipboard carries HTML, Markdown, and image data
 
-- Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `src/main.ts` to `main.js`.
-- Make changes to `src/main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+## Example: Pasting into Microsoft Word
 
-## Releasing new releases
+1. Open **Settings -> Community plugins -> Article Paste -> Settings** and set **Copy format** to **HTML**.
+   ![Copy format set to HTML](images/copy-format-html.png)
+2. Copy the desired selection and paste it into Microsoft Word.
+   ![Pasting article content into Word](images/paste-word-doc.png)
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
+## Installation
 
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
+### From Obsidian Community Plugins
 
-## Adding your plugin to the community plugin list
+1. Open **Settings -> Community plugins**
+2. Select **Browse**, search for "Article Paste"
+3. Install and enable the plugin
 
-- Check the [plugin guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines).
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
+### Manual Installation
 
-## How to use
+1. Build the plugin with `npm run build`
+2. Copy the generated `main.js`, `manifest.json`, and optional `styles.css` to `.obsidian/plugins/obsidian-article-paste/`
+3. Reload Obsidian and enable the plugin
 
-- Clone this repo.
-- Make sure your NodeJS is at least v16 (`node --version`).
-- `npm i` or `yarn` to install dependencies.
-- `npm run dev` to start compilation in watch mode.
+## Settings
 
-## Manually installing the plugin
+- **Clipboard image size limit**: Maximum combined size of embedded images (set to `0` to disable). Warnings appear when the payload exceeds this limit
+- **Allow markdown-only fallback**: When enabled, the plugin drops images and copies Markdown if the payload is too large instead of aborting
+- **Copy format**: Decide whether the clipboard should favour rendered HTML or escaped Markdown blocks when pasting
 
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
+Access via **Settings -> Community plugins -> Article Paste -> Settings**.
 
-## Improve code quality with eslint (optional)
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code. 
-- To use eslint with this project, make sure to install eslint from terminal:
-  - `npm install -g eslint`
-- To use eslint to analyze this project use this command:
-  - `eslint src/main.ts`
-  - eslint will then create a report with suggestions for code improvement by file and line number.
-- If your source code is in a folder, such as `src`, you can use eslint with this command to analyze all files in that folder:
-  - `eslint ./src/`
+## Troubleshooting
 
-## Funding URL
+**Images are missing after paste?**
+- Confirm the referenced files exist inside the vault and are supported image formats (PNG, JPG, GIF, WebP, SVG, BMP, TIFF)
+- Check the notice for warnings about missing files, unsupported embeds, or skipped external URLs
+- Increase the clipboard size limit or enable markdown-only fallback if large images are skipped
 
-You can include funding URLs where people who use your plugin can financially support it.
+**Nothing copies?**
+- Ensure text is selected or the active pane contains a note when invoking the command
+- Review warnings about clipboard size or encoding errors in the notice banner
 
-The simple way is to set the `fundingUrl` field to your link in your `manifest.json` file:
+## Development
 
-```json
-{
-    "fundingUrl": "https://buymeacoffee.com"
-}
-```
+- `npm install` - install dependencies
+- `npm run dev` - compile in watch mode
+- `npm run build` - run type checks and produce `main.js`
+- `npm run test` - execute unit tests (Vitest)
 
-If you have multiple URLs, you can also do:
+## License
 
-```json
-{
-    "fundingUrl": {
-        "Buy Me a Coffee": "https://buymeacoffee.com",
-        "GitHub Sponsor": "https://github.com/sponsors",
-        "Patreon": "https://www.patreon.com/"
-    }
-}
-```
-
-## API Documentation
-
-See https://github.com/obsidianmd/obsidian-api
-
+MIT License - see [`LICENSE`](LICENSE).
