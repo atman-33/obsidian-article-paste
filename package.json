@@ -1,6 +1,6 @@
 {
   "name": "obsidian-article-paste",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Copy Obsidian selections with inline images for article editors.",
   "main": "main.js",
   "scripts": {

@@ -1,10 +1,10 @@
 {
-	"id": "obsidian-article-paste",
-	"name": "Article Paste",
-	"version": "1.0.0",
-	"minAppVersion": "0.15.0",
-	"description": "Copy Obsidian selections with inline images for article editors.",
-	"author": "atman-33",
-	"authorUrl": "https://atman-33.github.io/atman-hub",
-	"isDesktopOnly": false
+  "id": "article-paste",
+  "name": "Article Paste",
+  "version": "1.0.1",
+  "minAppVersion": "0.15.0",
+  "description": "Copy note selections with inline images for article editors.",
+  "author": "atman-33",
+  "authorUrl": "https://atman-33.github.io/atman-hub",
+  "isDesktopOnly": false
 }
