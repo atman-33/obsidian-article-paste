@@ -1,7 +1,7 @@
 {
-  "name": "obsidian-sample-plugin",
+  "name": "obsidian-article-paste",
   "version": "1.0.0",
-  "description": "This is a sample plugin for Obsidian (https://obsidian.md)",
+  "description": "Copy Obsidian selections with inline images for article editors.",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
@@ -15,8 +15,15 @@
     "check": "biome check --write src/",
     "prepare": "husky"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "obsidian",
+    "plugin",
+    "clipboard",
+    "markdown",
+    "html",
+    "images"
+  ],
+  "author": "atman-33",
   "license": "MIT",
   "devDependencies": {
     "@biomejs/biome": "2.2.4",
