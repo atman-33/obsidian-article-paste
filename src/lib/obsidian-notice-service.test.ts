@@ -24,7 +24,7 @@ class PresenterStub {
 }
 
 function createService(presenter: PresenterStub): NoticeService {
-  return new ObsidianNoticeService(presenter as any);
+  return new ObsidianNoticeService(presenter);
 }
 
 describe('ObsidianNoticeService', () => {

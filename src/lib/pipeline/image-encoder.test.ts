@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ElectronImageEncoder } from './image-encoder';
 import type { ResolvedEmbed } from './types';
+import { createFileStub } from '../testing/file-stub';
 
 class NativeImageInstanceStub {
   buffer: Buffer = Buffer.alloc(0);
@@ -38,9 +39,10 @@ function createEmbed(options: {
   path?: string;
 }): ResolvedEmbed {
   const { buffer, mimeType, path = 'image.png' } = options;
+  const extension = path.split('.').pop() ?? 'png';
   return {
     originalLink: '![[image]]',
-    file: { path, extension: path.split('.').pop() ?? 'png' } as any,
+    file: createFileStub(path, extension),
     buffer: buffer.buffer,
     mimeType,
     sizeBytes: buffer.byteLength,

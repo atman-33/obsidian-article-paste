@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { ElectronClipboardWriter } from './clipboard-writer';
 import type { ClipboardPayload, EncodedImage } from './types';
+import { createFileStub } from '../testing/file-stub';
 
 function createPayload(
   overrides: Partial<ClipboardPayload> = {},
@@ -38,7 +39,7 @@ describe('ElectronClipboardWriter', () => {
       mimeType: 'image/png',
       original: {
         originalLink: '![[img.png]]',
-        file: { path: 'img.png', extension: 'png' } as any,
+        file: createFileStub('img.png', 'png'),
         buffer: new ArrayBuffer(0),
         mimeType: 'image/png',
         sizeBytes: 0,

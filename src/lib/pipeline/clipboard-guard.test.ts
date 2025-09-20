@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { ClipboardSizeGuard } from './clipboard-guard';
 import type { EncodedImage } from './types';
 import type { ArticlePasteSettings } from '../settings';
+import { createFileStub } from '../testing/file-stub';
 
 function createImage(sizeBytes: number): EncodedImage {
   return {
@@ -11,7 +12,7 @@ function createImage(sizeBytes: number): EncodedImage {
     mimeType: 'image/png',
     original: {
       originalLink: '![[img.png]]',
-      file: { path: 'img.png', extension: 'png' } as any,
+      file: createFileStub('img.png', 'png'),
       buffer: new ArrayBuffer(0),
       mimeType: 'image/png',
       sizeBytes,

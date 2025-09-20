@@ -8,6 +8,7 @@ import type {
   SelectionSnapshot,
 } from './types';
 import type { MarkdownRendererService } from './services';
+import { createFileStub } from '../testing/file-stub';
 
 function createSelection(
   markdown: string,
@@ -26,9 +27,10 @@ function createEmbed(
   mimeType: string,
   size: number,
 ): ResolvedEmbed {
+  const extension = path.split('.').pop() ?? 'png';
   return {
     originalLink: link,
-    file: { path, extension: path.split('.').pop() ?? 'png' } as any,
+    file: createFileStub(path, extension),
     buffer: new ArrayBuffer(size),
     mimeType,
     sizeBytes: size,
